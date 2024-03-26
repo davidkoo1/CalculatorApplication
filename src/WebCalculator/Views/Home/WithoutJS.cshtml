@@ -1,0 +1,19 @@
+﻿@model TmpForTets
+
+<div class="form-container">
+    <form method="post" asp-action="WithoutJsS">
+        <div class="form-group">
+            <label asp-for="expresion">OpLSWORK</label>
+            <input type="text" asp-for="expresion" readonly required>
+            <span asp-validation-for="expresion" class="text-danger"></span>
+        </div>
+
+        <!-- Добавляем кнопки для чисел и операций -->
+        @foreach (var item in new[] { "1", "2", "3", "+", "4", "5", "6", "-", "7", "8", "9", "*", "0", "=", "/" })
+        {
+            <button name="btn" value="@item" type="submit" class="btn btn-light">@item</button>
+        }
+
+        <button type="submit" name="calculate" value="true" class="submit-button">Calculate</button>
+    </form>
+</div>

@@ -89,21 +89,42 @@
 
 </div>
 
-<script>
 
+<script>
     var needToClearDisplay = false;
 
     function appendToDisplay(value) {
-        if (needToClearDisplay)
-            clearDisplay();
+        var currentValue = document.getElementById('display').value;
+        var lastChar = currentValue.slice(-1);
+        var operators = ['+', '-', '*', '/'];
 
-        document.getElementById('display').value += value;
+        if (needToClearDisplay) {
+            if (operators.includes(value)) {
+                // Если после результата выбран оператор, добавляем его к текущему значению на дисплее
+                document.getElementById('display').value = currentValue + value;
+            } else {
+                // Если после результата выбрано не оператор, очищаем дисплей и устанавливаем новое значение
+                document.getElementById('display').value = value;
+            }
+            needToClearDisplay = false;
+            return;
+        }
 
-        needToClearDisplay = false;
+        // Замена последнего оператора, если последний символ - оператор
+        if (operators.includes(lastChar) && operators.includes(value)) {
+            currentValue = currentValue.slice(0, -1);
+        }
+
+        // Дополнительная логика ввода
+        // Предотвращаем добавление некорректных значений, как ранее описано
+        // Ваша существующая логика обработки ввода...
+
+        document.getElementById('display').value = currentValue + value;
     }
 
     function clearDisplay() {
         document.getElementById('display').value = '';
+        needToClearDisplay = false;
     }
 
     function deleteLast() {
@@ -114,6 +135,8 @@
     function calculate() {
         var result = document.getElementById('display').value;
 
+        // Предполагается, что AJAX-запрос отправляется на сервер для расчета
+        // Здесь имитация получения результата через AJAX-запрос
         $.ajax({
             url: '/Home/Calculate',
             cache: false,
@@ -122,19 +145,18 @@
             contentType: "application/json; charset=utf-8",
             success: function (data) {
                 if (data.statusCode === 200) {
-                    
                     document.getElementById('display').value = data.message;
-                    
-                   // needToClearDisplay = true;
                 } else {
-                    
-                    document.getElementById('display').value = data.message;
-                    needToClearDisplay = true;
+                    document.getElementById('display').value = data.message; // Пример обработки ошибки
                 }
+                needToClearDisplay = true;
             },
         });
     }
 </script>
+
+
+
 
 
 
