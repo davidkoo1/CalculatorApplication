@@ -94,37 +94,82 @@
     var needToClearDisplay = false;
 
     function appendToDisplay(value) {
+       
+
         var currentValue = document.getElementById('display').value;
         var lastChar = currentValue.slice(-1);
         var operators = ['+', '-', '*', '/'];
+        var valuesNum = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        var lastNumber = currentValue.split(/[\+\-\*\/]/).pop();
 
-        if (needToClearDisplay) {
-            if (operators.includes(value)) {
-                // Если после результата выбран оператор, добавляем его к текущему значению на дисплее
-                document.getElementById('display').value = currentValue + value;
-            } else {
-                // Если после результата выбрано не оператор, очищаем дисплей и устанавливаем новое значение
-                document.getElementById('display').value = value;
-            }
-            needToClearDisplay = false;
-            return;
+        if (needToClearDisplay && valuesNum.includes(value)) {
+            clearDisplay();
         }
 
-        // Замена последнего оператора, если последний символ - оператор
+        if (value === '.') {
+            if (currentValue === '') {
+                document.getElementById('display').value = '0.';
+                return;
+            }
+        }
+        if (
+            (lastChar === '-' && value === ')') || 
+            (currentValue === '' && operators.includes(value)) || 
+            (value !== '-' && (lastChar === '(' && operators.includes(value))) || 
+            ((lastChar === '.' && operators.includes(value)) || (value === '.' && operators.includes(lastChar))) || 
+            ((lastChar === '.' && value === '(') || (lastChar === '.' && value === ')')) || 
+            (lastChar === ')' && valuesNum.includes(value))) {
+            return;
+        }
+        // if (lastChar === '-' && value === ')') {
+        //     return;
+        // }
+        // if (currentValue === '' && operators.includes(value)) {
+        //     return;
+        // }
+        // if (value !== '-' && (lastChar === '(' && operators.includes(value))) {
+        //     return;
+        // }
+        // if ((lastChar === '.' && operators.includes(value)) || (value === '.' && operators.includes(lastChar))) {
+        //     return;
+        // }
+        // if ((lastChar === '.' && value === '(') || (lastChar === '.' && value === ')')) {
+        //     return;
+        // }
+
+        // Замена последнего оператора на новый, если последний символ - оператор
+       // debugger;
         if (operators.includes(lastChar) && operators.includes(value)) {
+            if (!valuesNum.includes(currentValue.slice(-2, -1))) { // если преЛаст это () или еще что-то то не меняю знак
+                return;
+            }
             currentValue = currentValue.slice(0, -1);
         }
 
-        // Дополнительная логика ввода
-        // Предотвращаем добавление некорректных значений, как ранее описано
-        // Ваша существующая логика обработки ввода...
+        // Предотвращаем добавление точки, если последняя введенная часть является числом с точкой
+        if (value === '.' && lastNumber.includes('.')) {
+            return;
+        }
+
+        // Проверка для скобок
+        if (value === '(') {
+            // Не позволяем вводить открывающую скобку непосредственно после числа без оператора
+            if (lastChar.match(/\d/)) {
+                return;
+            }
+        } else if (value === ')') {
+            // Предотвращаем добавление закрывающей скобки, если непосредственно перед ней стоит открывающая или если скобки не сбалансированы
+            if (lastChar === '(' || (currentValue.match(/\(/g) || []).length <= (currentValue.match(/\)/g) || []).length) {
+                return;
+            }
+        }
 
         document.getElementById('display').value = currentValue + value;
+        needToClearDisplay = false;
     }
 
     function clearDisplay() {
         document.getElementById('display').value = '';
-        needToClearDisplay = false;
     }
 
     function deleteLast() {
@@ -134,9 +179,8 @@
 
     function calculate() {
         var result = document.getElementById('display').value;
+        
 
-        // Предполагается, что AJAX-запрос отправляется на сервер для расчета
-        // Здесь имитация получения результата через AJAX-запрос
         $.ajax({
             url: '/Home/Calculate',
             cache: false,
@@ -146,10 +190,11 @@
             success: function (data) {
                 if (data.statusCode === 200) {
                     document.getElementById('display').value = data.message;
+                    needToClearDisplay = true;
                 } else {
-                    document.getElementById('display').value = data.message; // Пример обработки ошибки
+                    document.getElementById('display').value = data.message;
+                    needToClearDisplay = true;
                 }
-                needToClearDisplay = true;
             },
         });
     }
